@@ -16,13 +16,13 @@ class DownloadVideoJob implements ShouldQueue
     public int $tries = 2;
 
     const FORMAT_MAP = [
-        'best'  => 'bestvideo+bestaudio/best',
-        '2160p' => 'bestvideo[height<=2160]+bestaudio/best[height<=2160]',
-        '1080p' => 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
-        '720p'  => 'bestvideo[height<=720]+bestaudio/best[height<=720]',
-        '480p'  => 'bestvideo[height<=480]+bestaudio/best[height<=480]',
-        '360p'  => 'bestvideo[height<=360]+bestaudio/best[height<=360]',
-        'audio' => 'bestaudio/best',
+        'best'  => 'bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        '2160p' => 'bestvideo[vcodec^=avc1][ext=mp4][height<=2160]+bestaudio[ext=m4a]/best[ext=mp4][height<=2160]/best[height<=2160]',
+        '1080p' => 'bestvideo[vcodec^=avc1][ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]/best[height<=1080]',
+        '720p'  => 'bestvideo[vcodec^=avc1][ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4][height<=720]/best[height<=720]',
+        '480p'  => 'bestvideo[vcodec^=avc1][ext=mp4][height<=480]+bestaudio[ext=m4a]/best[ext=mp4][height<=480]/best[height<=480]',
+        '360p'  => 'bestvideo[vcodec^=avc1][ext=mp4][height<=360]+bestaudio[ext=m4a]/best[ext=mp4][height<=360]/best[height<=360]',
+        'audio' => 'bestaudio[ext=m4a]/bestaudio/best',
     ];
 
     public function __construct(
@@ -42,16 +42,27 @@ class DownloadVideoJob implements ShouldQueue
         $format   = self::FORMAT_MAP[$this->resolution] ?? self::FORMAT_MAP['best'];
         $template = $outputDir . '/%(title)s.%(ext)s';
 
-        // Use --print after_move to get the exact final file path reliably
-        $process = new Process([
+        // Use --print after_move to get the exact final file path reliably.
+        $command = [
             '/usr/local/bin/yt-dlp',
             '--no-playlist',
             '--ffmpeg-location', '/usr/local/bin/ffmpeg',
             '-f', $format,
+        ];
+
+        if ($this->resolution !== 'audio') {
+            $command[] = '--merge-output-format';
+            $command[] = 'mp4';
+        }
+
+        $command = [
+            ...$command,
             '--print', 'after_move:%(filepath)s',
             '-o', $template,
             $this->download->link,
-        ]);
+        ];
+
+        $process = new Process($command);
         $process->setTimeout(600);
         $process->run();
 
