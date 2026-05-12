@@ -11,13 +11,7 @@ state([
     'sortOrder'      => 'desc',
 ]);
 
-$categories = computed(fn() =>
-    Download::where('status', 'done')
-        ->whereNotNull('category')
-        ->distinct()
-        ->orderBy('category')
-        ->pluck('category')
-);
+$categories = computed(fn() => Download::categories());
 
 $videos = computed(function () {
     return Download::with('media')
@@ -53,7 +47,7 @@ $resetFilters = \Livewire\Volt\action(function () {
             class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white">
             <option value="">All Categories</option>
             @foreach($this->categories as $cat)
-                <option value="{{ $cat }}">{{ $cat }}</option>
+                <option value="{{ $cat }}">{{ ucfirst($cat) }}</option>
             @endforeach
         </select>
 
@@ -101,20 +95,23 @@ $resetFilters = \Livewire\Volt\action(function () {
 
                     {{-- Info --}}
                     <div class="p-4 flex flex-col gap-2 flex-1">
-                        <p class="font-semibold text-gray-800 text-sm leading-snug line-clamp-2" title="{{ $item->title }}">
-                            {{ $item->title ?: 'Untitled' }}
-                        </p>
-
+                        {{-- Badges row --}}
                         <div class="flex flex-wrap gap-1">
                             @if($item->category)
-                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ $item->category }}</span>
+                                <span class="text-xs font-semibold bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+                                    {{ $item->category }}
+                                </span>
                             @endif
                             @if($item->type)
-                                <span class="text-xs px-2 py-0.5 rounded-full font-medium {{ $item->type === 'short' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
+                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full {{ $item->type === 'short' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
                                     {{ ucfirst($item->type) }}
                                 </span>
                             @endif
                         </div>
+
+                        <p class="font-semibold text-gray-800 text-sm leading-snug line-clamp-2" title="{{ $item->title }}">
+                            {{ $item->title ?: 'Untitled' }}
+                        </p>
 
                         <div class="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
                             <span class="text-xs text-gray-400">{{ $item->created_at->format('M d, Y') }}</span>

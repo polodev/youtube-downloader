@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\DownloadVideoJob;
+use App\Jobs\FetchVideoTitleJob;
 use App\Models\Download;
 use function Livewire\Volt\{state, computed, on, action};
 
@@ -61,6 +62,15 @@ $directDownload = action(function () {
 
 $triggerEdit = action(function (int $id) {
     $this->dispatch('trigger-edit', id: $id);
+});
+
+$fetchTitle = action(function (int $id) {
+    $download = Download::findOrFail($id);
+    $title = FetchVideoTitleJob::fetchTitle($download->link);
+    if ($title) {
+        $download->update(['title' => $title]);
+    }
+    $this->refreshKey++;
 });
 
 ?>
@@ -200,6 +210,14 @@ $triggerEdit = action(function (int $id) {
                 <button wire:click="triggerEdit({{ $item->id }})"
                     class="text-gray-400 hover:text-blue-500 text-sm px-2 py-1.5 transition" title="Edit">
                     &#9998;
+                </button>
+
+                <button wire:click="fetchTitle({{ $item->id }})"
+                    wire:loading.attr="disabled" wire:target="fetchTitle({{ $item->id }})"
+                    class="text-gray-400 hover:text-purple-500 text-sm px-2 py-1.5 transition disabled:opacity-40"
+                    title="Fetch title from YouTube">
+                    <span wire:loading.remove wire:target="fetchTitle({{ $item->id }})">&#127987;</span>
+                    <span wire:loading wire:target="fetchTitle({{ $item->id }})">…</span>
                 </button>
 
                 @if(in_array($item->status, ['pending', 'failed']))

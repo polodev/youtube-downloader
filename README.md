@@ -1,15 +1,20 @@
 # YouTube Downloader
 
-A self-hosted Laravel application to save YouTube links and download videos locally. Supports resolution selection, a media gallery with filters, and queue-based background downloading.
+A self-hosted Laravel application to save YouTube links and download videos locally. Supports resolution selection, a card-based gallery UI, and queue-based background downloading.
 
 ## Features
 
 - Save YouTube links with optional title, category, and type (Video / Short)
+- Auto-fetch video title from YouTube metadata via yt-dlp (on save and on demand)
 - Choose download resolution before queueing — Best, 4K, 1080p, 720p, 480p, 360p, or Audio Only
-- Background download via Laravel queues (no browser timeout)
+- **Queue** downloads in the background via Laravel queues (browser doesn't wait)
+- **Download Now** for immediate synchronous downloads with a loading overlay
 - Re-download any video at a different resolution
 - Media stored and managed via [Spatie Laravel Media Library](https://github.com/spatie/laravel-medialibrary)
 - Edit saved links — changing the URL automatically clears the old file and resets status
+- Card-based gallery UI on the homepage (latest 30) and Video Gallery page (all)
+- Action buttons on each card — edit, fetch title, download/re-download, delete
+- Status placeholders on cards for pending / downloading / failed states
 - Video Gallery page with HTML5 player, filterable by type, category, and date order
 - Paginated gallery — 30 videos per page
 - Livewire Volt reactive UI — no page reloads, live status polling while downloads run
@@ -112,11 +117,12 @@ php artisan queue:work database --timeout=1200 --memory=2048 --tries=3
 ## Usage
 
 1. Open the app and paste a YouTube URL into **Add YouTube Link**
-2. Optionally fill in Title, Category, and Type (Video / Short)
+2. Optionally fill in Title, Category, and Type (Video / Short) — title will be fetched from YouTube automatically if left blank
 3. Click **Save Link**
-4. Click **Download** on any saved link, choose a resolution, and click **Queue Download**
-5. The queue worker picks up the job — status updates live on the page
-6. Once done, a download link appears. Visit **Video Gallery** to watch and download
+4. On the homepage card grid, click **↓ DL** on any card, choose a resolution, then **Queue** (background) or **Now** (immediate)
+5. Status updates live on the cards while the download runs
+6. Once done, the card shows an inline video player with download and YT links
+7. Visit **Video Gallery** to browse all downloaded videos with filters
 
 ## Stack
 

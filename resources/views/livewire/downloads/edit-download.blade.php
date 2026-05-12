@@ -30,7 +30,7 @@ $save = action(function () {
         'type'     => 'nullable|in:short,video',
     ]);
 
-    $download = Download::findOrFail($this->downloadId);
+    $download    = Download::findOrFail($this->downloadId);
     $linkChanged = $download->link !== $this->link;
 
     if ($linkChanged) {
@@ -80,8 +80,13 @@ $close = action(function () {
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-600 mb-1">Category</label>
-                        <input type="text" wire:model="category" placeholder="e.g. Music"
+                        <select wire:model="category"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <option value="">— select —</option>
+                            @foreach(\App\Models\Download::categories() as $cat)
+                                <option value="{{ $cat }}">{{ ucfirst($cat) }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-600 mb-1">Type</label>

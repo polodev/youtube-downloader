@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\DownloadVideoJob;
+use App\Jobs\FetchVideoTitleJob;
 use App\Models\Download;
 use Illuminate\Http\Request;
 
@@ -22,15 +23,19 @@ class DownloadController extends Controller
             'type'     => 'nullable|in:short,video',
         ]);
 
-        Download::create([
+        $download = Download::create([
             'link'     => $request->link,
-            'title'    => $request->title,
+            'title'    => $request->title ?: null,
             'category' => $request->category,
             'type'     => $request->type,
             'status'   => 'pending',
         ]);
 
-        return redirect()->route('downloads.index')->with('success', 'Link saved successfully.');
+        if (!$download->title) {
+            FetchVideoTitleJob::dispatch($download);
+        }
+
+        return redirect()->route('downloads.index')->with('success', 'Link saved! Title will be fetched shortly.');
     }
 
     public function download(Download $download)

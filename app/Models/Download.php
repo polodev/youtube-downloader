@@ -12,6 +12,20 @@ class Download extends Model implements HasMedia
 
     protected $fillable = ['title', 'link', 'category', 'type', 'resolution', 'status'];
 
+    public static function categories(): array
+    {
+        return [
+            'tutorial',
+            'review',
+            'entertainment',
+            'ai',
+            'music',
+            'news',
+            'gaming',
+            'documentary',
+        ];
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('videos')->singleFile();

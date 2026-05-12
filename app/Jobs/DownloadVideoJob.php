@@ -6,6 +6,7 @@ use App\Models\Download;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Symfony\Component\Process\Process;
+use App\Jobs\FetchVideoTitleJob;
 
 class DownloadVideoJob implements ShouldQueue
 {
@@ -62,11 +63,14 @@ class DownloadVideoJob implements ShouldQueue
         $filePath = trim($process->getOutput());
 
         if ($filePath && file_exists($filePath)) {
-            // Clear any previous media before adding new
             $this->download->clearMediaCollection('videos');
             $this->download->addMedia($filePath)->toMediaCollection('videos');
+
+            $realTitle = FetchVideoTitleJob::fetchTitle($this->download->link)
+                ?? pathinfo($filePath, PATHINFO_FILENAME);
+
             $this->download->update([
-                'title'  => $this->download->title ?: pathinfo($filePath, PATHINFO_FILENAME),
+                'title'  => $realTitle,
                 'status' => 'done',
             ]);
         } else {
