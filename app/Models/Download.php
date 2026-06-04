@@ -29,5 +29,6 @@ class Download extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('videos')->singleFile();
+        $this->addMediaCollection('captions')->singleFile();
     }
 }

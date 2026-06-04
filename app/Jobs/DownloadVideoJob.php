@@ -48,6 +48,10 @@ class DownloadVideoJob implements ShouldQueue
             '--no-playlist',
             '--ffmpeg-location', '/usr/local/bin/ffmpeg',
             '-f', $format,
+            '--write-subs',
+            '--write-auto-subs',
+            '--sub-langs', 'en.*',
+            '--convert-subs', 'srt',
         ];
 
         if ($this->resolution !== 'audio') {
@@ -71,11 +75,18 @@ class DownloadVideoJob implements ShouldQueue
             return;
         }
 
-        $filePath = trim($process->getOutput());
+        $filePath = $this->extractDownloadedMediaPath($process->getOutput());
 
         if ($filePath && file_exists($filePath)) {
             $this->download->clearMediaCollection('videos');
             $this->download->addMedia($filePath)->toMediaCollection('videos');
+
+            if ($captionPath = $this->findCaptionPath($filePath)) {
+                $this->download->clearMediaCollection('captions');
+                $this->download->addMedia($captionPath)->toMediaCollection('captions');
+            } else {
+                $this->download->clearMediaCollection('captions');
+            }
 
             $realTitle = FetchVideoTitleJob::fetchTitle($this->download->link)
                 ?? pathinfo($filePath, PATHINFO_FILENAME);
@@ -92,5 +103,42 @@ class DownloadVideoJob implements ShouldQueue
     public function failed(\Throwable $e): void
     {
         $this->download->update(['status' => 'failed']);
+    }
+
+    private function extractDownloadedMediaPath(string $output): ?string
+    {
+        $mediaExtensions = ['mp4', 'm4a', 'webm', 'mkv', 'mp3'];
+
+        foreach (array_reverse(preg_split('/\R/', trim($output)) ?: []) as $line) {
+            $path = trim($line);
+
+            if (
+                $path !== ''
+                && file_exists($path)
+                && in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), $mediaExtensions, true)
+            ) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    private function findCaptionPath(string $mediaPath): ?string
+    {
+        $basePath = preg_replace('/\.[^.]+$/', '', $mediaPath);
+
+        if (!$basePath) {
+            return null;
+        }
+
+        $captionPaths = [
+            ...(glob($basePath . '.srt') ?: []),
+            ...(glob($basePath . '.*.srt') ?: []),
+        ];
+
+        return collect($captionPaths)
+            ->sortBy(fn(string $path) => str_ends_with($path, '.en.srt') ? 0 : 1)
+            ->first();
     }
 }

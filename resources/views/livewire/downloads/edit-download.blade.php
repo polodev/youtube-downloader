@@ -35,6 +35,7 @@ $save = action(function () {
 
     if ($linkChanged) {
         $download->clearMediaCollection('videos');
+        $download->clearMediaCollection('captions');
     }
 
     $download->update([

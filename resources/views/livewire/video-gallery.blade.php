@@ -75,7 +75,10 @@ $resetFilters = \Livewire\Volt\action(function () {
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($this->videos as $item)
-                @php $media = $item->getFirstMedia('videos'); @endphp
+                @php
+                    $media = $item->getFirstMedia('videos');
+                    $caption = $item->getFirstMedia('captions');
+                @endphp
                 <div class="bg-white rounded-xl shadow overflow-hidden flex flex-col">
                     {{-- Video player --}}
                     <div class="relative bg-black aspect-video max-h-56 overflow-hidden">
@@ -122,6 +125,10 @@ $resetFilters = \Livewire\Volt\action(function () {
                                         &#8595; Download
                                         <span class="text-gray-400">({{ round($media->size / 1048576, 1) }}MB)</span>
                                     </a>
+                                @endif
+                                @if($caption)
+                                    <a href="{{ $caption->getUrl() }}" download="{{ $caption->file_name }}"
+                                        class="text-xs text-blue-600 hover:text-blue-800 font-medium">SRT</a>
                                 @endif
                                 <a href="{{ $item->link }}" target="_blank"
                                     class="text-xs text-red-500 hover:text-red-700 font-medium">YT &#8599;</a>

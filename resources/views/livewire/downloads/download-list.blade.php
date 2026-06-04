@@ -40,6 +40,7 @@ $closePicker = action(function () {
 $queueDownload = action(function () {
     $download = Download::findOrFail($this->pickerDownloadId);
     $download->clearMediaCollection('videos');
+    $download->clearMediaCollection('captions');
     $download->update(['status' => 'pending', 'resolution' => $this->pickerResolution]);
     DownloadVideoJob::dispatch($download, $this->pickerResolution);
     $this->pickerOpen = false;
@@ -49,6 +50,7 @@ $queueDownload = action(function () {
 $directDownload = action(function () {
     $download = Download::findOrFail($this->pickerDownloadId);
     $download->clearMediaCollection('videos');
+    $download->clearMediaCollection('captions');
     $download->update(['status' => 'pending', 'resolution' => $this->pickerResolution]);
     $this->pickerOpen    = false;
     $this->directRunning = true;
@@ -183,13 +185,22 @@ $fetchTitle = action(function (int $id) {
                 </div>
 
                 @if($item->hasMedia('videos'))
-                    @php $media = $item->getFirstMedia('videos'); @endphp
+                    @php
+                        $media = $item->getFirstMedia('videos');
+                        $caption = $item->getFirstMedia('captions');
+                    @endphp
                     <div class="mt-2">
                         <a href="{{ $media->getUrl() }}" download
                             class="inline-flex items-center gap-1 text-sm text-green-600 hover:text-green-800 font-medium">
                             &#8595; {{ $media->file_name }}
                         </a>
                         <span class="text-xs text-gray-400 ml-2">{{ round($media->size / 1048576, 1) }} MB</span>
+                        @if($caption)
+                            <a href="{{ $caption->getUrl() }}" download="{{ $caption->file_name }}"
+                                class="ml-3 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                SRT
+                            </a>
+                        @endif
                     </div>
                 @endif
             </div>

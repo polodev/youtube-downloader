@@ -57,6 +57,7 @@ class DownloadController extends Controller
     public function destroy(Download $download)
     {
         $download->clearMediaCollection('videos');
+        $download->clearMediaCollection('captions');
         $download->delete();
 
         return redirect()->route('downloads.index')->with('success', 'Entry deleted.');

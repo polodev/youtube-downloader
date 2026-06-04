@@ -28,6 +28,8 @@ on(['trigger-resolution-picker' => function (int $id) {
 
 $confirm = action(function () use ($resolutions) {
     $download = Download::findOrFail($this->downloadId);
+    $download->clearMediaCollection('videos');
+    $download->clearMediaCollection('captions');
     $download->update([
         'status'     => 'pending',
         'resolution' => $this->resolution,

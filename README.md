@@ -9,6 +9,7 @@ A self-hosted Laravel application to save YouTube links and download videos loca
 - Choose download resolution before queueing — Best, 4K, 1080p, 720p, 480p, 360p, or Audio Only
 - **Queue** downloads in the background via Laravel queues (browser doesn't wait)
 - **Download Now** for immediate synchronous downloads with a loading overlay
+- Download English captions as SRT files when YouTube provides manual or auto captions
 - Re-download any video at a different resolution
 - Media stored and managed via [Spatie Laravel Media Library](https://github.com/spatie/laravel-medialibrary)
 - Edit saved links — changing the URL automatically clears the old file and resets status

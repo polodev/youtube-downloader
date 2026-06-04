@@ -67,6 +67,7 @@ $closePicker = action(fn() => $this->pickerOpen = false);
 $queueDownload = action(function () {
     $download = Download::findOrFail($this->pickerDownloadId);
     $download->clearMediaCollection('videos');
+    $download->clearMediaCollection('captions');
     $download->update(['status' => 'pending', 'resolution' => $this->pickerResolution]);
     DownloadVideoJob::dispatch($download, $this->pickerResolution);
     $this->pickerOpen = false;
@@ -76,6 +77,7 @@ $queueDownload = action(function () {
 $directDownload = action(function () {
     $download = Download::findOrFail($this->pickerDownloadId);
     $download->clearMediaCollection('videos');
+    $download->clearMediaCollection('captions');
     $download->update(['status' => 'pending', 'resolution' => $this->pickerResolution]);
     $this->pickerOpen    = false;
     $this->directRunning = true;
@@ -101,6 +103,7 @@ $fetchTitle = action(function (int $id) {
 $deleteItem = action(function (int $id) {
     $download = Download::findOrFail($id);
     $download->clearMediaCollection('videos');
+    $download->clearMediaCollection('captions');
     $download->delete();
     $this->refreshKey++;
 });
@@ -244,7 +247,10 @@ $resetFilters = action(function () {
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             @foreach($items as $item)
-            @php $media = $item->getFirstMedia('videos'); @endphp
+            @php
+                $media = $item->getFirstMedia('videos');
+                $caption = $item->getFirstMedia('captions');
+            @endphp
             <div class="bg-white rounded-xl shadow overflow-hidden flex flex-col">
 
                 {{-- Action bar (top of card) --}}
@@ -357,6 +363,12 @@ $resetFilters = action(function () {
                                 <a href="{{ $media->getUrl() }}" download="{{ $media->file_name }}"
                                     class="text-green-600 hover:text-green-800 font-medium">
                                     &#8595; {{ round($media->size / 1048576, 1) }}MB
+                                </a>
+                            @endif
+                            @if($caption)
+                                <a href="{{ $caption->getUrl() }}" download="{{ $caption->file_name }}"
+                                    class="text-blue-600 hover:text-blue-800 font-medium">
+                                    SRT
                                 </a>
                             @endif
                             <a href="{{ $item->link }}" target="_blank"
