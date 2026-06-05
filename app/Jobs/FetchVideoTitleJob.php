@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Download;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
 class FetchVideoTitleJob implements ShouldQueue
@@ -33,8 +34,13 @@ class FetchVideoTitleJob implements ShouldQueue
             '--print', '%(title)s',
             $url,
         ]);
-        $process->setTimeout(30);
-        $process->run();
+        $process->setTimeout(300);
+
+        try {
+            $process->run();
+        } catch (ProcessTimedOutException) {
+            return null;
+        }
 
         if (!$process->isSuccessful()) {
             return null;
